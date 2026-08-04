@@ -1,0 +1,130 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(0.985 0.006 190);
+  --foreground: oklch(0.18 0.025 215);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.025 215);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.025 215);
+  --primary: oklch(0.43 0.095 184);
+  --primary-foreground: oklch(0.99 0.006 185);
+  --secondary: oklch(0.95 0.018 192);
+  --secondary-foreground: oklch(0.24 0.045 198);
+  --muted: oklch(0.95 0.009 215);
+  --muted-foreground: oklch(0.49 0.025 215);
+  --accent: oklch(0.94 0.04 83);
+  --accent-foreground: oklch(0.25 0.045 72);
+  --destructive: oklch(0.58 0.2 25);
+  --destructive-foreground: oklch(0.99 0.006 25);
+  --warning: oklch(0.76 0.145 73);
+  --warning-foreground: oklch(0.22 0.04 70);
+  --success: oklch(0.52 0.12 157);
+  --success-foreground: oklch(0.99 0.006 160);
+  --info: oklch(0.58 0.11 235);
+  --info-foreground: oklch(0.99 0.006 235);
+  --border: oklch(0.9 0.012 215);
+  --input: oklch(0.91 0.012 215);
+  --ring: oklch(0.58 0.105 184);
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --font-sans: var(--font-cairo);
+  --font-mono: var(--font-geist-mono);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+.dark {
+  --background: oklch(0.16 0.018 215);
+  --foreground: oklch(0.96 0.007 210);
+  --card: oklch(0.2 0.02 215);
+  --card-foreground: oklch(0.96 0.007 210);
+  --popover: oklch(0.2 0.02 215);
+  --popover-foreground: oklch(0.96 0.007 210);
+  --primary: oklch(0.7 0.11 184);
+  --primary-foreground: oklch(0.16 0.03 190);
+  --secondary: oklch(0.27 0.025 215);
+  --secondary-foreground: oklch(0.94 0.012 210);
+  --muted: oklch(0.27 0.02 215);
+  --muted-foreground: oklch(0.72 0.022 215);
+  --accent: oklch(0.31 0.05 84);
+  --accent-foreground: oklch(0.93 0.045 88);
+  --destructive: oklch(0.68 0.19 24);
+  --destructive-foreground: oklch(0.99 0.006 25);
+  --warning: oklch(0.8 0.13 76);
+  --warning-foreground: oklch(0.2 0.035 70);
+  --success: oklch(0.7 0.12 155);
+  --success-foreground: oklch(0.15 0.03 155);
+  --info: oklch(0.72 0.1 235);
+  --info-foreground: oklch(0.14 0.03 235);
+  --border: oklch(0.32 0.02 215);
+  --input: oklch(0.31 0.02 215);
+  --ring: oklch(0.68 0.11 184);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply min-h-screen bg-background text-foreground antialiased;
+    font-feature-settings: "kern";
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 18%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
