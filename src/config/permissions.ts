@@ -1,115 +1,39 @@
-import type { DashboardRole } from "@/types/auth";
+import type { DashboardRole, RoleMetadata } from "@/types/auth";
 import type { Permission } from "@/types/permissions";
 
 export const ALL_PERMISSIONS = [
-  "dashboard.view",
-  "students.view",
-  "students.create",
-  "students.update",
-  "students.view_guardian",
-  "guardians.view",
-  "guardians.contact",
-  "scanner.use",
-  "attendance.view",
-  "attendance.create",
-  "attendance.update",
-  "attendance.override",
-  "courses.view",
-  "courses.manage",
-  "groups.view",
-  "groups.manage",
-  "content.manage",
-  "exams.view",
-  "exams.manage",
-  "results.view",
-  "results.manage",
-  "teachers.view",
-  "teachers.manage",
-  "assistants.view",
-  "assistants.manage",
-  "subscriptions.view",
-  "subscriptions.manage",
-  "payments.view",
-  "payments.manage",
-  "reports.view",
-  "settings.center",
-  "settings.system",
-  "audit.view",
-  "users.manage",
-  "permissions.manage",
+  "dashboard.view", "students.view", "students.manage", "center_requests.view", "groups.view", "groups.manage",
+  "attendance.view", "attendance.manage", "barcodes.view", "guardian_messages.view",
+  "courses.view", "courses.manage", "lessons.view", "lessons.manage", "packages.view", "packages.manage",
+  "exams.view", "exams.manage", "grades.view", "grades.manage", "store.view", "store.manage",
+  "payments.view", "payments.manage", "coupons.view", "coupons.manage", "access_codes.view", "access_codes.manage", "student_access.view", "student_access.manage",
+  "teachers.view", "teachers.manage", "assistants.view", "assistants.manage", "assignments.view", "assignments.manage",
+  "website.view", "website.manage", "reports.view", "audit.view", "settings.center", "settings.system",
 ] as const satisfies readonly Permission[];
 
-const adminPermissions = [
-  "dashboard.view",
-  "students.view",
-  "students.create",
-  "students.update",
-  "students.view_guardian",
-  "guardians.view",
-  "guardians.contact",
-  "scanner.use",
-  "attendance.view",
-  "attendance.create",
-  "attendance.update",
-  "attendance.override",
-  "courses.view",
-  "courses.manage",
-  "groups.view",
-  "groups.manage",
-  "exams.view",
-  "results.view",
-  "teachers.view",
-  "teachers.manage",
-  "assistants.view",
-  "assistants.manage",
-  "subscriptions.view",
-  "subscriptions.manage",
-  "payments.view",
-  "payments.manage",
-  "reports.view",
-  "settings.center",
+// Teacher administrators inherit every operational capability an assistant may receive.
+const teacherAdminPermissions = ALL_PERMISSIONS.filter((permission) => ![
+  "teachers.view", "teachers.manage", "website.view", "website.manage", "audit.view", "settings.system",
+].includes(permission)) as Permission[];
+
+const assistantBaseline = [
+  "dashboard.view", "students.view", "center_requests.view", "groups.view", "attendance.view",
+  "barcodes.view", "guardian_messages.view", "courses.view", "lessons.view", "exams.view",
+  "grades.view", "payments.view", "student_access.view",
 ] as const satisfies readonly Permission[];
 
-const teacherPermissions = [
-  "dashboard.view",
-  "students.view",
-  "students.view_guardian",
-  "guardians.view",
-  "guardians.contact",
-  "attendance.view",
-  "attendance.create",
-  "courses.view",
-  "groups.view",
-  "content.manage",
-  "exams.view",
-  "exams.manage",
-  "results.view",
-  "results.manage",
-] as const satisfies readonly Permission[];
-
-const assistantPermissions = [
-  "dashboard.view",
-  "students.view",
-  "students.view_guardian",
-  "guardians.view",
-  "guardians.contact",
-  "scanner.use",
-  "attendance.view",
-  "attendance.create",
-  "courses.view",
-  "groups.view",
-] as const satisfies readonly Permission[];
-
-export const ROLE_PERMISSIONS = {
+export const ROLE_PERMISSIONS: Record<DashboardRole, readonly Permission[]> = {
   SUPER_ADMIN: ALL_PERMISSIONS,
-  ADMIN: adminPermissions,
-  TEACHER: teacherPermissions,
-  ASSISTANT: assistantPermissions,
-} as const satisfies Record<DashboardRole, readonly Permission[]>;
+  TEACHER_ADMIN: teacherAdminPermissions,
+  ASSISTANT: assistantBaseline,
+};
 
-export const roleLabels = {
-  SUPER_ADMIN: "مدير النظام",
-  ADMIN: "مدير السنتر",
-  TEACHER: "مدرس",
-  ASSISTANT: "مساعد تشغيل",
-} as const satisfies Record<DashboardRole, string>;
+export const roleMetadata: Record<DashboardRole, RoleMetadata> = {
+  SUPER_ADMIN: { label: "مدير النظام", description: "إدارة المركز والنظام بالكامل", defaultRoute: "/dashboard", badgeTone: "primary" },
+  TEACHER_ADMIN: { label: "مدير المدرس", description: "إدارة نطاق المدرس وفرق العمل التابعة له", defaultRoute: "/dashboard", badgeTone: "info" },
+  ASSISTANT: { label: "مساعد", description: "تشغيل مهام محددة داخل نطاق تعيين المدرس", defaultRoute: "/dashboard", badgeTone: "success" },
+};
+
+export const roleLabels = Object.fromEntries(
+  Object.entries(roleMetadata).map(([role, metadata]) => [role, metadata.label]),
+) as Record<DashboardRole, string>;

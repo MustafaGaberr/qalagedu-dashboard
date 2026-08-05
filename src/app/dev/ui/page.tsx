@@ -52,8 +52,7 @@ export default function DevUiPage() {
             </CardHeader>
             <CardContent className="flex flex-wrap gap-2">
               <RoleBadge role="SUPER_ADMIN" />
-              <RoleBadge role="ADMIN" />
-              <RoleBadge role="TEACHER" />
+              <RoleBadge role="TEACHER_ADMIN" />
               <RoleBadge role="ASSISTANT" />
             </CardContent>
           </Card>

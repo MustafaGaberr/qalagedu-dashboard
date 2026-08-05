@@ -2,5 +2,5 @@ import { dashboardModulePages } from "@/features/access-control/module-pages";
 import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
 
 export default function ScannerPage() {
-  return <ProtectedPlaceholderPage module={dashboardModulePages.scanner} />;
+  return <ProtectedPlaceholderPage module={dashboardModulePages.barcodes} />;
 }

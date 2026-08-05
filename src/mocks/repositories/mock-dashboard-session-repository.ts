@@ -1,4 +1,4 @@
-import type { DashboardRole, DashboardUser } from "@/types/auth";
+import type { AssistantAssignment, DashboardRole, DashboardUser } from "@/types/auth";
 
 export interface DashboardSessionRepository {
   getCurrentUser(role?: DashboardRole): Promise<DashboardUser>;
@@ -6,66 +6,19 @@ export interface DashboardSessionRepository {
 }
 
 export const mockDashboardUsers = [
-  {
-    id: "usr_super_admin",
-    fullName: "مصطفى محمود",
-    firstName: "مصطفى",
-    email: "super.admin@qalagedu.local",
-    phone: "01000000001",
-    role: "SUPER_ADMIN",
-    avatarInitials: "مم",
-    accountStatus: "active",
-    centerName: "كل الفروع",
-  },
-  {
-    id: "usr_admin",
-    fullName: "سارة أحمد",
-    firstName: "سارة",
-    email: "admin@qalagedu.local",
-    phone: "01000000002",
-    role: "ADMIN",
-    avatarInitials: "سأ",
-    accountStatus: "active",
-    centerName: "سنتر قلعة التعليم - الرئيسي",
-  },
-  {
-    id: "usr_teacher",
-    fullName: "أحمد عبد الرحمن",
-    firstName: "أحمد",
-    email: "teacher@qalagedu.local",
-    phone: "01000000003",
-    role: "TEACHER",
-    avatarInitials: "أع",
-    accountStatus: "active",
-    centerName: "سنتر قلعة التعليم - الرئيسي",
-    assignedSubjects: ["الرياضيات"],
-    assignedGroups: ["ثالثة ثانوي - أ", "ثانية ثانوي - ب"],
-  },
-  {
-    id: "usr_assistant",
-    fullName: "ندى خالد",
-    firstName: "ندى",
-    email: "assistant@qalagedu.local",
-    phone: "01000000004",
-    role: "ASSISTANT",
-    avatarInitials: "نك",
-    accountStatus: "active",
-    centerName: "سنتر قلعة التعليم - الرئيسي",
-    assignedGroups: ["استقبال الفترة المسائية", "بوابة الحضور"],
-  },
+  { id: "usr_super_admin", fullName: "مصطفى محمود", firstName: "مصطفى", email: "super.admin@qalagedu.local", role: "SUPER_ADMIN", avatarInitials: "مم", accountStatus: "active", centerName: "منظومة قلعة التعليم" },
+  { id: "usr_teacher_admin", fullName: "أحمد عبد الرحمن", firstName: "أحمد", email: "teacher@qalagedu.local", role: "TEACHER_ADMIN", avatarInitials: "أع", accountStatus: "active", centerName: "سنتر قلعة التعليم - الرئيسي", teacherId: "teacher_ahmed", assignedSubjects: ["الرياضيات"], assignedGroups: ["ثالثة ثانوي - أ", "ثانية ثانوي - ب"] },
+  { id: "usr_assistant", fullName: "سارة أحمد", firstName: "سارة", email: "assistant@qalagedu.local", role: "ASSISTANT", avatarInitials: "سأ", accountStatus: "active", centerName: "سنتر قلعة التعليم - الرئيسي" },
 ] as const satisfies readonly DashboardUser[];
 
-export class MockDashboardSessionRepository
-  implements DashboardSessionRepository
-{
-  async getCurrentUser(role: DashboardRole = "SUPER_ADMIN") {
-    return mockDashboardUsers.find((user) => user.role === role) ?? mockDashboardUsers[0];
-  }
+export const mockAssistantAssignments: readonly AssistantAssignment[] = [
+  { id: "assignment_sara_ahmed", assistantId: "usr_assistant", teacherId: "teacher_ahmed", teacherName: "أ. أحمد عبد الرحمن", subject: "الرياضيات", grades: ["الثالثة الثانوية"], groups: ["ثالثة ثانوي - أ", "ثالثة ثانوي - ب"], permissions: ["dashboard.view", "students.view", "students.manage", "center_requests.view", "groups.view", "attendance.view", "attendance.manage", "barcodes.view", "guardian_messages.view", "courses.view", "exams.view", "grades.view", "payments.view"] },
+  { id: "assignment_sara_mona", assistantId: "usr_assistant", teacherId: "teacher_mona", teacherName: "أ. منى السيد", subject: "الفيزياء", grades: ["الثالثة الثانوية"], groups: ["ثالثة ثانوي - ج"], permissions: ["dashboard.view", "attendance.view", "attendance.manage"] },
+];
 
-  async getUsers() {
-    return [...mockDashboardUsers];
-  }
+export class MockDashboardSessionRepository implements DashboardSessionRepository {
+  async getCurrentUser(role: DashboardRole = "SUPER_ADMIN") { return mockDashboardUsers.find((user) => user.role === role) ?? mockDashboardUsers[0]; }
+  async getUsers() { return [...mockDashboardUsers]; }
 }
 
-export const dashboardSessionRepository =
-  new MockDashboardSessionRepository();
+export const dashboardSessionRepository = new MockDashboardSessionRepository();

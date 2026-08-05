@@ -11,12 +11,15 @@ import { canAccessAny } from "@/lib/access-control";
 import { cn } from "@/lib/cn";
 import type { DashboardUser } from "@/types/auth";
 import type { DashboardNavigationSection } from "@/types/navigation";
+import type { Permission } from "@/types/permissions";
 
 interface DashboardSidebarProps {
   user: DashboardUser;
   sections?: readonly DashboardNavigationSection[];
   compact?: boolean;
   onNavigate?: () => void;
+  permissions?: readonly Permission[];
+  collapsed?: boolean;
 }
 
 function isRouteActive(pathname: string, href: string, match?: readonly string[]) {
@@ -33,13 +36,15 @@ export function DashboardSidebar({
   sections = dashboardNavigationSections,
   compact,
   onNavigate,
+  permissions,
+  collapsed = false,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
   const visibleSections = sections
     .map((section) => ({
       ...section,
       items: section.items.filter((item) =>
-        canAccessAny(user.role, item.permissions),
+        canAccessAny(user.role, item.permissions, permissions),
       ),
     }))
     .filter((section) => section.items.length > 0);
@@ -48,7 +53,7 @@ export function DashboardSidebar({
     <aside
       className={cn(
         "flex h-full flex-col border-e bg-card text-card-foreground",
-        compact ? "w-full" : "w-72",
+        compact ? "w-full" : collapsed ? "w-20" : "w-72",
       )}
     >
       <div className="flex items-center gap-3 border-b px-4 py-4">
@@ -61,7 +66,7 @@ export function DashboardSidebar({
             priority
           />
         </div>
-        <div className="min-w-0">
+        <div className={cn("min-w-0", collapsed && "sr-only")}>
           <p className="truncate text-sm font-bold">{brandConfig.dashboardName}</p>
           <p className="truncate text-xs text-muted-foreground">
             {user.centerName}
@@ -73,7 +78,7 @@ export function DashboardSidebar({
         <div className="space-y-5">
           {visibleSections.map((section) => (
             <section key={section.id} className="space-y-2">
-              <h2 className="px-2 text-xs font-semibold text-muted-foreground">
+              <h2 className={cn("px-2 text-xs font-semibold text-muted-foreground", collapsed && "sr-only")}>
                 {section.label}
               </h2>
               <div className="space-y-1">
@@ -91,8 +96,8 @@ export function DashboardSidebar({
                         title={description ?? "قريبا"}
                       >
                         <Icon className="size-4" aria-hidden="true" />
-                        <span className="truncate">{item.label}</span>
-                        <span className="ms-auto rounded-sm bg-muted px-1.5 py-0.5 text-[0.68rem]">
+                        <span className={cn("truncate", collapsed && "sr-only")}>{item.label}</span>
+                        <span className={cn("ms-auto rounded-sm bg-muted px-1.5 py-0.5 text-[0.68rem]", collapsed && "sr-only")}>
                           قريب
                         </span>
                       </div>
@@ -114,7 +119,7 @@ export function DashboardSidebar({
                       title={description}
                     >
                       <Icon className="size-4" aria-hidden="true" />
-                      <span className="truncate">{item.label}</span>
+                      <span className={cn("truncate", collapsed && "sr-only")}>{item.label}</span>
                     </Link>
                   );
                 })}
@@ -125,11 +130,11 @@ export function DashboardSidebar({
       </nav>
 
       <div className="border-t p-3">
-        <div className="rounded-lg bg-secondary/70 p-3">
-          <p className="text-sm font-bold">{user.fullName}</p>
-          <div className="mt-2 flex items-center justify-between gap-2">
+        <div className={cn("rounded-lg bg-secondary/70 p-3", collapsed && "p-2") }>
+          <p className={cn("text-sm font-bold", collapsed && "sr-only")}>{user.fullName}</p>
+          <div className={cn("mt-2 flex items-center justify-between gap-2", collapsed && "mt-0")}>
             <RoleBadge role={user.role} />
-            <span className="text-xs text-muted-foreground">Mock</span>
+            <span className={cn("text-xs text-muted-foreground", collapsed && "sr-only")}>Mock</span>
           </div>
         </div>
       </div>

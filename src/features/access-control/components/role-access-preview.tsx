@@ -17,7 +17,7 @@ import {
 } from "@/mocks/repositories/mock-dashboard-session-repository";
 import type { DashboardRole } from "@/types/auth";
 
-const roles = ["SUPER_ADMIN", "ADMIN", "TEACHER", "ASSISTANT"] as const;
+const roles = ["SUPER_ADMIN", "TEACHER_ADMIN", "ASSISTANT"] as const;
 
 interface RoleAccessPreviewProps {
   users: Awaited<ReturnType<DashboardSessionRepository["getUsers"]>>;
