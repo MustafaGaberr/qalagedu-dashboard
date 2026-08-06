@@ -13,7 +13,7 @@ export const ALL_PERMISSIONS = [
 
 // Teacher administrators inherit every operational capability an assistant may receive.
 const teacherAdminPermissions = ALL_PERMISSIONS.filter((permission) => ![
-  "teachers.view", "teachers.manage", "website.view", "website.manage", "audit.view", "settings.system",
+  "teachers.manage", "website.view", "website.manage", "audit.view", "settings.system",
 ].includes(permission)) as Permission[];
 
 const assistantBaseline = [

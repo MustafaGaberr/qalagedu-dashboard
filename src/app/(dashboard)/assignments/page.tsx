@@ -1,3 +1,2 @@
-import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
-import { dashboardModulePages } from "@/features/access-control/module-pages";
-export default function AssignmentsPage() { return <ProtectedPlaceholderPage module={dashboardModulePages.assignments} />; }
+import { AssignmentsPage } from "@/features/staff/staff-pages";
+export default function AssignmentsRoutePage() { return <AssignmentsPage />; }

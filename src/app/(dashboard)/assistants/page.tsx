@@ -1,6 +1,5 @@
-import { dashboardModulePages } from "@/features/access-control/module-pages";
-import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
+import { AssistantsPage } from "@/features/staff/staff-pages";
 
-export default function AssistantsPage() {
-  return <ProtectedPlaceholderPage module={dashboardModulePages.assistants} />;
+export default function AssistantsRoutePage() {
+  return <AssistantsPage />;
 }

@@ -39,5 +39,7 @@ export interface AssistantAssignment {
   subject: string;
   grades: string[];
   groups: string[];
+  courses?: string[];
+  active?: boolean;
   permissions: Permission[];
 }

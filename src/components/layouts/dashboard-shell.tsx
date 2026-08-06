@@ -6,6 +6,7 @@ import { DashboardWorkspaceProvider, useDashboardWorkspace } from "@/features/da
 import { OperationsProvider } from "@/features/operations/operations-context";
 import { ContentProvider } from "@/features/content/content-context";
 import { FinanceProvider } from "@/features/finance/finance-context";
+import { StaffProvider } from "@/features/staff/staff-context";
 import type { DashboardUser } from "@/types/auth";
 import { cn } from "@/lib/cn";
 
@@ -14,7 +15,7 @@ export function DashboardShell({ user, initialAssignmentId, children }: { user: 
 }
 
 function DashboardShellContents({ children }: { children: React.ReactNode }) {
-  return <OperationsProvider><ContentProvider><FinanceProvider><DashboardShellFrame>{children}</DashboardShellFrame></FinanceProvider></ContentProvider></OperationsProvider>;
+  return <OperationsProvider><ContentProvider><FinanceProvider><StaffProvider><DashboardShellFrame>{children}</DashboardShellFrame></StaffProvider></FinanceProvider></ContentProvider></OperationsProvider>;
 }
 
 function DashboardShellFrame({ children }: { children: React.ReactNode }) {

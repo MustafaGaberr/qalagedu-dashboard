@@ -14,6 +14,8 @@ interface WorkspaceContextValue {
   assignment?: AssistantAssignment;
   setAssignmentId: (id: string) => void;
   assignments: readonly AssistantAssignment[];
+  upsertAssignment: (assignment: AssistantAssignment) => void;
+  suspendAssignment: (id: string) => void;
   permissions: readonly Permission[];
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
@@ -25,8 +27,11 @@ export function DashboardWorkspaceProvider({ initialUser, initialAssignmentId, c
   const [role, setRole] = useState<DashboardRole>(initialUser.role);
   const [assignmentId, setAssignmentIdState] = useState(initialAssignmentId ?? mockAssistantAssignments[0].id);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [assignments, setAssignments] = useState<AssistantAssignment[]>([...mockAssistantAssignments]);
   const user = useMemo(() => mockDashboardUsers.find((candidate) => candidate.role === role) ?? initialUser, [initialUser, role]);
-  const assignment = role === "ASSISTANT" ? mockAssistantAssignments.find((candidate) => candidate.id === assignmentId) ?? mockAssistantAssignments[0] : undefined;
+  const activeAssignments = assignments.filter((candidate) => candidate.active !== false);
+  const availableAssignments = role === "ASSISTANT" ? activeAssignments.filter((candidate) => candidate.assistantId === user.id) : activeAssignments;
+  const assignment = role === "ASSISTANT" ? availableAssignments.find((candidate) => candidate.id === assignmentId) ?? availableAssignments[0] : undefined;
   const permissions = assignment ? assignment.permissions : ROLE_PERMISSIONS[role];
   function setRoleAndPersist(nextRole: DashboardRole) {
     setRole(nextRole);
@@ -35,13 +40,15 @@ export function DashboardWorkspaceProvider({ initialUser, initialAssignmentId, c
   }
 
   function setAssignmentAndPersist(nextAssignmentId: string) {
-    const nextAssignment = mockAssistantAssignments.find((candidate) => candidate.id === nextAssignmentId);
+    const nextAssignment = availableAssignments.find((candidate) => candidate.id === nextAssignmentId);
     if (!nextAssignment) return;
     setAssignmentIdState(nextAssignment.id);
     if (role === "ASSISTANT") void persistMockSession(role, nextAssignment.id);
   }
 
-  const value = { user, role, setRole: setRoleAndPersist, assignment, setAssignmentId: setAssignmentAndPersist, assignments: mockAssistantAssignments, permissions, sidebarCollapsed, setSidebarCollapsed };
+  function upsertAssignment(next: AssistantAssignment) { setAssignments((items) => items.some((item) => item.id === next.id) ? items.map((item) => item.id === next.id ? next : item) : [...items, next]); }
+  function suspendAssignment(id: string) { setAssignments((items) => items.map((item) => item.id === id ? { ...item, active: false } : item)); }
+  const value = { user, role, setRole: setRoleAndPersist, assignment, setAssignmentId: setAssignmentAndPersist, assignments, upsertAssignment, suspendAssignment, permissions, sidebarCollapsed, setSidebarCollapsed };
   return <WorkspaceContext.Provider value={value}>{children}</WorkspaceContext.Provider>;
 }
 

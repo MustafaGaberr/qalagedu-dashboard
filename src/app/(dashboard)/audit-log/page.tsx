@@ -1,6 +1,5 @@
-import { dashboardModulePages } from "@/features/access-control/module-pages";
-import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
+import { AuditLogPage } from "@/features/staff/system-pages";
 
-export default function AuditLogPage() {
-  return <ProtectedPlaceholderPage module={dashboardModulePages["audit-log"]} />;
+export default function AuditLogRoutePage() {
+  return <AuditLogPage />;
 }
