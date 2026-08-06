@@ -7,4 +7,5 @@ export const brandConfig = {
   studentPlatformUrl: "../qalagedu-platform",
   centerName: "سنتر قلعة التعليم",
   markSrc: "/brand/qalagedu-mark.svg",
+  support: { email: "support@qalagedu.local", phone: "01000000000", whatsapp: "201000000000" },
 } as const;

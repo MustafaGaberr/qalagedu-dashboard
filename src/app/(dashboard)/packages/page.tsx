@@ -1,3 +1,2 @@
-import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
-import { dashboardModulePages } from "@/features/access-control/module-pages";
-export default function PackagesPage() { return <ProtectedPlaceholderPage module={dashboardModulePages.packages} />; }
+import { PackagesPage } from "@/features/content/packages-page";
+export default function PackagesRoutePage() { return <PackagesPage />; }

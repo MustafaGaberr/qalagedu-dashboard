@@ -1,3 +1,2 @@
-import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
-import { dashboardModulePages } from "@/features/access-control/module-pages";
-export default function StorePage() { return <ProtectedPlaceholderPage module={dashboardModulePages.store} />; }
+import { StorePage } from "@/features/content/store-website-pages";
+export default function StoreRoutePage() { return <StorePage />; }
