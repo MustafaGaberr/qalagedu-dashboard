@@ -5,6 +5,7 @@ import { DashboardTopbar } from "@/components/layouts/dashboard-topbar";
 import { DashboardWorkspaceProvider, useDashboardWorkspace } from "@/features/dashboard-workspace/workspace-context";
 import { OperationsProvider } from "@/features/operations/operations-context";
 import { ContentProvider } from "@/features/content/content-context";
+import { FinanceProvider } from "@/features/finance/finance-context";
 import type { DashboardUser } from "@/types/auth";
 import { cn } from "@/lib/cn";
 
@@ -13,7 +14,7 @@ export function DashboardShell({ user, initialAssignmentId, children }: { user: 
 }
 
 function DashboardShellContents({ children }: { children: React.ReactNode }) {
-  return <OperationsProvider><ContentProvider><DashboardShellFrame>{children}</DashboardShellFrame></ContentProvider></OperationsProvider>;
+  return <OperationsProvider><ContentProvider><FinanceProvider><DashboardShellFrame>{children}</DashboardShellFrame></FinanceProvider></ContentProvider></OperationsProvider>;
 }
 
 function DashboardShellFrame({ children }: { children: React.ReactNode }) {

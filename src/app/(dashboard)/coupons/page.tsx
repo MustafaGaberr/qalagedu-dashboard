@@ -1,3 +1,2 @@
-import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
-import { dashboardModulePages } from "@/features/access-control/module-pages";
-export default function CouponsPage() { return <ProtectedPlaceholderPage module={dashboardModulePages.coupons} />; }
+import { CouponsPage } from "@/features/finance/access-pages";
+export default function CouponsRoutePage() { return <CouponsPage />; }
