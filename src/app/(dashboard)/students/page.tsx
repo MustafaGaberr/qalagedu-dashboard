@@ -1,6 +1,2 @@
-import { dashboardModulePages } from "@/features/access-control/module-pages";
-import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
-
-export default function StudentsPage() {
-  return <ProtectedPlaceholderPage module={dashboardModulePages.students} />;
-}
+import { StudentsPage } from "@/features/operations/operations-pages";
+export default function Page() { return <StudentsPage />; }

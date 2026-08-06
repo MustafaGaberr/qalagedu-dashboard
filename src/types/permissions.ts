@@ -1,7 +1,7 @@
 export type Permission =
   | "dashboard.view"
-  | "students.view" | "students.manage" | "center_requests.view" | "groups.view" | "groups.manage"
-  | "attendance.view" | "attendance.manage" | "barcodes.view" | "guardian_messages.view"
+  | "students.view" | "students.manage" | "center_requests.view" | "center_requests.manage" | "groups.view" | "groups.manage"
+  | "attendance.view" | "attendance.scan" | "attendance.manage" | "scores.manage" | "barcodes.view" | "barcodes.manage" | "guardian_messages.view" | "guardian_messages.prepare" | "guardian_messages.mark_sent"
   | "courses.view" | "courses.manage" | "lessons.view" | "lessons.manage" | "packages.view" | "packages.manage"
   | "exams.view" | "exams.manage" | "grades.view" | "grades.manage" | "store.view" | "store.manage"
   | "payments.view" | "payments.manage" | "coupons.view" | "coupons.manage" | "access_codes.view" | "access_codes.manage" | "student_access.view" | "student_access.manage"

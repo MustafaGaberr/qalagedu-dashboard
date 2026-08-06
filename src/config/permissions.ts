@@ -2,8 +2,8 @@ import type { DashboardRole, RoleMetadata } from "@/types/auth";
 import type { Permission } from "@/types/permissions";
 
 export const ALL_PERMISSIONS = [
-  "dashboard.view", "students.view", "students.manage", "center_requests.view", "groups.view", "groups.manage",
-  "attendance.view", "attendance.manage", "barcodes.view", "guardian_messages.view",
+  "dashboard.view", "students.view", "students.manage", "center_requests.view", "center_requests.manage", "groups.view", "groups.manage",
+  "attendance.view", "attendance.scan", "attendance.manage", "scores.manage", "barcodes.view", "barcodes.manage", "guardian_messages.view", "guardian_messages.prepare", "guardian_messages.mark_sent",
   "courses.view", "courses.manage", "lessons.view", "lessons.manage", "packages.view", "packages.manage",
   "exams.view", "exams.manage", "grades.view", "grades.manage", "store.view", "store.manage",
   "payments.view", "payments.manage", "coupons.view", "coupons.manage", "access_codes.view", "access_codes.manage", "student_access.view", "student_access.manage",
@@ -17,7 +17,7 @@ const teacherAdminPermissions = ALL_PERMISSIONS.filter((permission) => ![
 ].includes(permission)) as Permission[];
 
 const assistantBaseline = [
-  "dashboard.view", "students.view", "center_requests.view", "groups.view", "attendance.view",
+  "dashboard.view", "students.view", "center_requests.view", "groups.view", "attendance.view", "attendance.scan",
   "barcodes.view", "guardian_messages.view", "courses.view", "lessons.view", "exams.view",
   "grades.view", "payments.view", "student_access.view",
 ] as const satisfies readonly Permission[];

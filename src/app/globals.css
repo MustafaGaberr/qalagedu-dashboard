@@ -128,3 +128,24 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+@media print {
+  .no-print,
+  header,
+  aside,
+  footer {
+    display: none !important;
+  }
+
+  .print-card {
+    break-inside: avoid;
+  }
+
+  .print-only {
+    display: grid !important;
+  }
+}
+
+.print-only {
+  display: none;
+}

@@ -1,3 +1,2 @@
-import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
-import { dashboardModulePages } from "@/features/access-control/module-pages";
-export default function BarcodesPage() { return <ProtectedPlaceholderPage module={dashboardModulePages.barcodes} />; }
+import { BarcodesPage } from "@/features/operations/operations-pages";
+export default function Page() { return <BarcodesPage />; }

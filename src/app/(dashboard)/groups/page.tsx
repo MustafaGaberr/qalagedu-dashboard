@@ -1,3 +1,2 @@
-import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
-import { dashboardModulePages } from "@/features/access-control/module-pages";
-export default function GroupsPage() { return <ProtectedPlaceholderPage module={dashboardModulePages.groups} />; }
+import { GroupsPage } from "@/features/operations/operations-pages";
+export default function Page() { return <GroupsPage />; }

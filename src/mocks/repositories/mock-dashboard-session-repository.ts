@@ -12,8 +12,8 @@ export const mockDashboardUsers = [
 ] as const satisfies readonly DashboardUser[];
 
 export const mockAssistantAssignments: readonly AssistantAssignment[] = [
-  { id: "assignment_sara_ahmed", assistantId: "usr_assistant", teacherId: "teacher_ahmed", teacherName: "أ. أحمد عبد الرحمن", subject: "الرياضيات", grades: ["الثالثة الثانوية"], groups: ["ثالثة ثانوي - أ", "ثالثة ثانوي - ب"], permissions: ["dashboard.view", "students.view", "students.manage", "center_requests.view", "groups.view", "attendance.view", "attendance.manage", "barcodes.view", "guardian_messages.view", "courses.view", "exams.view", "grades.view", "payments.view"] },
-  { id: "assignment_sara_mona", assistantId: "usr_assistant", teacherId: "teacher_mona", teacherName: "أ. منى السيد", subject: "الفيزياء", grades: ["الثالثة الثانوية"], groups: ["ثالثة ثانوي - ج"], permissions: ["dashboard.view", "attendance.view", "attendance.manage"] },
+  { id: "assignment_sara_ahmed", assistantId: "usr_assistant", teacherId: "teacher_ahmed", teacherName: "أ. أحمد عبد الرحمن", subject: "الرياضيات", grades: ["الثالثة الثانوية"], groups: ["ثالثة ثانوي - أ", "ثالثة ثانوي - ب"], permissions: ["dashboard.view", "students.view", "students.manage", "center_requests.view", "center_requests.manage", "groups.view", "groups.manage", "attendance.view", "attendance.scan", "attendance.manage", "scores.manage", "barcodes.view", "barcodes.manage", "guardian_messages.view", "guardian_messages.prepare", "guardian_messages.mark_sent", "courses.view", "exams.view", "grades.view", "payments.view"] },
+  { id: "assignment_sara_mona", assistantId: "usr_assistant", teacherId: "teacher_mona", teacherName: "أ. منى السيد", subject: "الفيزياء", grades: ["الثالثة الثانوية"], groups: ["ثالثة ثانوي - ج"], permissions: ["dashboard.view", "attendance.view", "attendance.scan", "attendance.manage"] },
 ];
 
 export class MockDashboardSessionRepository implements DashboardSessionRepository {
