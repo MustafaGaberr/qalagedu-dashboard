@@ -36,6 +36,7 @@ type Value = {
   approvePayment: (id: string) => Promise<void>;
   rejectPayment: (id: string, reason: string) => Promise<void>;
   requestPaymentInfo: (id: string, note: string) => Promise<void>;
+  cancelPayment: (id: string, reason?: string) => Promise<void>;
   createCoupon: (item: Omit<PaidCoupon, "id" | "code" | "teacherId" | "status">) => string | undefined;
   redeemCoupon: (code: string, studentId: string) => string | undefined;
   revokeCoupon: (id: string) => string | undefined;
@@ -166,20 +167,21 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const approvePayment = (id: string) => reviewPayment(`payment-requests/${id}/approve`);
   const rejectPayment = (id: string, reason: string) => reviewPayment(`payment-requests/${id}/reject`, { reason });
   const requestPaymentInfo = (id: string, reason: string) => reviewPayment(`payment-requests/${id}/request-information`, { reason });
+  const cancelPayment = (id: string, reason?: string) => reviewPayment(`payment-requests/${id}/cancel`, { reason });
   const createCoupon = (item: Omit<PaidCoupon, "id" | "code" | "teacherId" | "status">) => { void apiRequest<{coupon:{id:string};code:string}>("coupons", { method:"POST", body:{ studentId: item.studentId, packageId: item.packageId, expiresAt: item.expiresAt } }).then(async(result)=>{issuedCodes.current.set(result.coupon.id,result.code);await load();}).catch((error)=>window.alert(toApiError(error).message)); return undefined; };
-  const redeemCoupon = () => "استرداد الكوبون متاح للطالب فقط؛ لا يوجد endpoint موظف للاسترداد نيابة عنه.";
+  const redeemCoupon = (code: string, studentId: string) => { mutate("coupons/redeem", "POST", { code, studentId }); return undefined; };
   const revokeCoupon = (id: string) => { mutate(`coupons/${id}/revoke`, "POST", { reason: "تم الإلغاء من لوحة الموظفين" }); return undefined; };
   const createAccessCode = (item: Omit<FreeAccessCode, "id" | "code" | "teacherId" | "status">) => {
     if (!item.courseId || (!item.lessonId && !item.packageId)) return "اختر كورسًا ودرسًا أو باقة للكود.";
     void apiRequest<{accessCode:{id:string};code:string}>("access-codes", { method:"POST", body:{ courseId: item.courseId, intendedStudentId: item.assignedStudentId, scopeType: item.lessonId ? "LESSON" : "PACKAGE", packageId: item.packageId, lessonId: item.lessonId, validityType: item.permanent ? "PERMANENT" : item.expiresAt ? "FIXED_EXPIRY" : "DURATION_DAYS", durationDays: item.durationDays, fixedExpiresAt: item.expiresAt, internalNotes: item.privateStaffNote } }).then(async(result)=>{issuedCodes.current.set(result.accessCode.id,result.code);await load();}).catch((error)=>window.alert(toApiError(error).message)); return undefined;
   };
-  const redeemAccessCode = () => "استرداد كود الوصول متاح للطالب فقط؛ لا يوجد endpoint موظف للاسترداد نيابة عنه.";
+  const redeemAccessCode = (code: string, studentId: string) => { mutate("access-codes/redeem", "POST", { code, studentId }); return undefined; };
   const revokeAccessCode = (id: string) => { mutate(`access-codes/${id}/revoke`, "POST", { reason: "تم الإلغاء من لوحة الموظفين" }); return undefined; };
   const grantAccess = (item: Pick<OnlineEntitlement, "studentId" | "courseId" | "packageId" | "lessonId" | "expiresAt">) => { mutate("entitlements/grant", "POST", { ...item, scopeType: item.lessonId ? "LESSON" : item.packageId ? "PACKAGE" : "COURSE" }); return undefined; };
   const revokeAccess = (id: string, reason: string) => { mutate(`entitlements/${id}/revoke`, "POST", { reason }); return undefined; };
   const extendAccess = (id: string, days: number) => { const item = entitlements.find((entry) => entry.id === id); const base = item?.expiresAt ? new Date(item.expiresAt).getTime() : Date.now(); mutate(`entitlements/${id}/extend`, "POST", { expiresAt: new Date(base + days * 86_400_000).toISOString() }); return undefined; };
 
-  return <Context.Provider value={{ payments, destinations, coupons, accessCodes, entitlements, financialSummary, canSeePayment, canSeeEntitlement, createDestination, updateDestination, approvePayment, rejectPayment, requestPaymentInfo, createCoupon, redeemCoupon, revokeCoupon, createAccessCode, redeemAccessCode, revokeAccessCode, grantAccess, revokeAccess, extendAccess }}>{children}</Context.Provider>;
+  return <Context.Provider value={{ payments, destinations, coupons, accessCodes, entitlements, financialSummary, canSeePayment, canSeeEntitlement, createDestination, updateDestination, approvePayment, rejectPayment, requestPaymentInfo, cancelPayment, createCoupon, redeemCoupon, revokeCoupon, createAccessCode, redeemAccessCode, revokeAccessCode, grantAccess, revokeAccess, extendAccess }}>{children}</Context.Provider>;
 }
 
 export function useFinance() {

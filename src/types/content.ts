@@ -24,7 +24,7 @@ export interface ContentPackage {
 export interface ExamQuestion { id: string; prompt: string; type: QuestionType; choices?: string[]; correctAnswers?: string[]; }
 export interface ContentExam {
   id: string; courseId: string; title: string; kind: ExamKind; durationMinutes?: number; attempts?: number; availableFrom?: string; availableTo?: string; passingScore?: number; resultRelease: ResultReleaseMode; antiCheatThreshold?: number;
-  audience: ExamAudience; targetIds: string[]; questions: ExamQuestion[]; state: PublishState;
+  audience: ExamAudience; targetIds: string[]; questions: ExamQuestion[]; state: PublishState; assignmentId?: string;
 }
 export interface GradeEntry { id: string; examId: string; studentId: string; score?: number; manualReview: boolean; note?: string; }
 export interface StoreProduct {

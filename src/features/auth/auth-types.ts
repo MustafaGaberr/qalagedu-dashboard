@@ -25,10 +25,14 @@ export const mapPermissions = (items: string[], role?: DashboardRole | "STUDENT"
   if (role === "SUPER_ADMIN") {
     if (items.includes("CONTENT_READ")) mapped.add("website.view");
     if (items.includes("CONTENT_MANAGE")) mapped.add("website.manage");
-    ["teachers.view", "assistants.view", "assignments.view", "audit.view", "settings.center", "settings.system"].forEach((permission) => mapped.add(permission as Permission));
+    ["teachers.view", "teachers.manage", "assistants.view", "assistants.manage", "assignments.view", "assignments.manage", "audit.view", "settings.center", "settings.system"].forEach((permission) => mapped.add(permission as Permission));
   }
-  if (role === "TEACHER_ADMIN") ["teachers.view", "assistants.view", "assignments.view", "settings.center"].forEach((permission) => mapped.add(permission as Permission));
+  if (role === "TEACHER_ADMIN") ["teachers.view", "assistants.view", "assistants.manage", "assignments.view", "assignments.manage", "settings.center"].forEach((permission) => mapped.add(permission as Permission));
   return [...mapped];
 };
+const backendPermissionByLocal: Partial<Record<Permission, string>> = Object.fromEntries(
+  Object.entries(permissionMap).flatMap(([backend, local]) => local.map((permission) => [permission, backend])),
+);
+export const toBackendPermissions = (items: Permission[]) => [...new Set(items.map((item) => backendPermissionByLocal[item]).filter((item): item is string => Boolean(item)))];
 export const mapUser = (session: BackendSession): DashboardUser => { const names = session.user.name.trim().split(/\s+/); return { id: session.user.id, fullName: session.user.name, firstName: names[0] ?? session.user.name, email: session.user.loginIdentifier, phone: session.user.phone ?? undefined, role: session.role as DashboardRole, avatarInitials: names.slice(0, 2).map((name) => name[0]).join(" "), accountStatus: "active", centerName: "QalagEdu", teacherId: session.workspace.teacherId ?? undefined }; };
 export const mapAssignment = (item: BackendAssignment, assistantId: string): AssistantAssignment => ({ id: item.id, assistantId, teacherId: item.teacher.id, teacherName: item.teacher.name, subject: item.label, grades: item.scope.gradeIds, groups: item.scope.groupIds, courses: item.scope.courseIds, permissions: mapPermissions(item.permissions), active: true });
