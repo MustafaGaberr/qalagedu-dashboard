@@ -1,53 +1,189 @@
 "use client";
 
-import { createContext, useContext, useState } from "react";
-import { canAccess } from "@/lib/access-control";
-import { useContent } from "@/features/content/content-context";
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { useDashboardWorkspace } from "@/features/dashboard-workspace/workspace-context";
 import { useOperations } from "@/features/operations/operations-context";
-import { initialAccessCodes, initialCoupons, initialEntitlements, initialPaymentDestinations, initialPayments } from "@/mocks/repositories/mock-finance-repository";
-import type { FreeAccessCode, OnlineEntitlement, PaidCoupon, PaymentDestination, PaymentRequest } from "@/types/finance";
+import { apiRequest } from "@/lib/api/client";
+import { toApiError } from "@/lib/api/errors";
+import type {
+  FreeAccessCode,
+  OnlineEntitlement,
+  PaidCoupon,
+  PaymentDestination,
+  PaymentRequest,
+} from "@/types/finance";
 
-type FinanceContextValue = {
-  payments: PaymentRequest[]; destinations: PaymentDestination[]; coupons: PaidCoupon[]; accessCodes: FreeAccessCode[]; entitlements: OnlineEntitlement[];
-  canSeePayment: (payment: PaymentRequest) => boolean; canSeeEntitlement: (item: OnlineEntitlement) => boolean; createDestination: (input: Omit<PaymentDestination, "id">) => string | undefined; updateDestination: (id: string, input: Partial<PaymentDestination>) => string | undefined;
-  approvePayment: (id: string) => string | undefined; rejectPayment: (id: string, reason: string) => string | undefined; requestPaymentInfo: (id: string, note: string) => string | undefined; cancelPayment: (id: string) => string | undefined;
-  createCoupon: (input: Omit<PaidCoupon, "id" | "code" | "teacherId" | "status">) => string | undefined; redeemCoupon: (code: string, studentId: string) => string | undefined; revokeCoupon: (id: string) => string | undefined;
-  createAccessCode: (input: Omit<FreeAccessCode, "id" | "code" | "teacherId" | "status">) => string | undefined; redeemAccessCode: (code: string, studentId: string) => string | undefined; revokeAccessCode: (id: string) => string | undefined;
-  grantAccess: (input: Pick<OnlineEntitlement, "studentId" | "courseId" | "packageId" | "lessonId" | "expiresAt">) => string | undefined; revokeAccess: (id: string, reason: string) => string | undefined; extendAccess: (id: string, days: number) => string | undefined;
+export type FinancialSummary = {
+  from: string | null;
+  to: string | null;
+  totalRequests: number;
+  approvedAmount: number;
+  byStatus: Record<string, number>;
 };
-const FinanceContext = createContext<FinanceContextValue | null>(null);
-const now = () => new Date().toISOString(); const id = (prefix: string) => `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
-const isExpired = (value?: string) => Boolean(value && new Date(value) < new Date());
+
+type Value = {
+  payments: PaymentRequest[];
+  destinations: PaymentDestination[];
+  coupons: PaidCoupon[];
+  accessCodes: FreeAccessCode[];
+  entitlements: OnlineEntitlement[];
+  financialSummary?: FinancialSummary;
+  canSeePayment: (item: PaymentRequest) => boolean;
+  canSeeEntitlement: (item: OnlineEntitlement) => boolean;
+  createDestination: (item: Omit<PaymentDestination, "id">) => string | undefined;
+  updateDestination: (id: string, item: Partial<PaymentDestination>) => string | undefined;
+  approvePayment: (id: string) => Promise<void>;
+  rejectPayment: (id: string, reason: string) => Promise<void>;
+  requestPaymentInfo: (id: string, note: string) => Promise<void>;
+  createCoupon: (item: Omit<PaidCoupon, "id" | "code" | "teacherId" | "status">) => string | undefined;
+  redeemCoupon: (code: string, studentId: string) => string | undefined;
+  revokeCoupon: (id: string) => string | undefined;
+  createAccessCode: (item: Omit<FreeAccessCode, "id" | "code" | "teacherId" | "status">) => string | undefined;
+  redeemAccessCode: (code: string, studentId: string) => string | undefined;
+  revokeAccessCode: (id: string) => string | undefined;
+  grantAccess: (item: Pick<OnlineEntitlement, "studentId" | "courseId" | "packageId" | "lessonId" | "expiresAt">) => string | undefined;
+  revokeAccess: (id: string, reason: string) => string | undefined;
+  extendAccess: (id: string, days: number) => string | undefined;
+};
+
+const Context = createContext<Value | null>(null);
 
 export function FinanceProvider({ children }: { children: React.ReactNode }) {
-  const { role, permissions, user } = useDashboardWorkspace(); const ops = useOperations(); const content = useContent();
-  const [payments, setPayments] = useState(initialPayments); const [destinations, setDestinations] = useState(initialPaymentDestinations); const [coupons, setCoupons] = useState(initialCoupons); const [accessCodes, setAccessCodes] = useState(initialAccessCodes); const [entitlements, setEntitlements] = useState(initialEntitlements);
-  const allowed = (permission: Parameters<typeof canAccess>[1]) => canAccess(role, permission, permissions);
-  const canSeeTeacher = (teacherId: string) => ops.canSeeTeacher(teacherId);
-  const studentInScope = (studentId: string, teacherId: string) => ops.enrollments.some((item) => item.studentId === studentId && item.teacherId === teacherId && ops.canSeeTeacher(item.teacherId, item.groupId));
-  const canSeePayment = (payment: PaymentRequest) => canSeeTeacher(payment.teacherId) && studentInScope(payment.studentId, payment.teacherId);
-  const canSeeEntitlement = (item: OnlineEntitlement) => canSeeTeacher(item.teacherId) && studentInScope(item.studentId, item.teacherId);
-  const audit = (action: string, targetId: string, teacherId?: string) => ops.recordContentAudit(action, targetId, teacherId);
-  const teacherFor = (courseId: string) => content.courses.find((course) => course.id === courseId)?.teacherId;
-  const validTarget = (courseId: string, packageId?: string, lessonId?: string) => Boolean(content.canSeeCourse(courseId) && (!packageId || content.packages.some((item) => item.id === packageId && item.courseId === courseId)) && (!lessonId || content.lessons.some((item) => item.id === lessonId && item.courseId === courseId)));
-  const entitlementExists = (studentId: string, courseId: string, packageId?: string, lessonId?: string) => entitlements.some((item) => item.studentId === studentId && item.courseId === courseId && item.packageId === packageId && item.lessonId === lessonId && item.status === "ACTIVE" && !isExpired(item.expiresAt));
-  function createEntitlement(input: Omit<OnlineEntitlement, "id" | "status" | "startsAt">) { if (entitlementExists(input.studentId, input.courseId, input.packageId, input.lessonId)) return "لدى الطالب صلاحية نشطة مطابقة بالفعل."; setEntitlements((items) => [{ ...input, id: id("entitlement"), status: "ACTIVE", startsAt: now() }, ...items]); return undefined; }
-  function createDestination(input: Omit<PaymentDestination, "id">) { if (!allowed("payments.manage") || !input.address.trim() || (input.teacherId && !canSeeTeacher(input.teacherId))) return "بيانات جهة الدفع أو نطاقها غير صالح."; const item = { ...input, id: id("destination") }; setDestinations((items) => [...items, item]); audit("PAYMENT_DESTINATION_CREATED", item.id, item.teacherId); return undefined; }
-  function updateDestination(destinationId: string, input: Partial<PaymentDestination>) { const item = destinations.find((candidate) => candidate.id === destinationId); if (!item || !allowed("payments.manage") || (item.teacherId && !canSeeTeacher(item.teacherId))) return "جهة الدفع غير موجودة أو خارج نطاقك."; setDestinations((items) => items.map((candidate) => candidate.id === destinationId ? { ...candidate, ...input, id: candidate.id } : candidate)); audit("PAYMENT_DESTINATION_CHANGED", destinationId, item.teacherId); return undefined; }
-  function approvePayment(paymentId: string) { const payment = payments.find((item) => item.id === paymentId); if (!payment || !allowed("payments.review") || !canSeePayment(payment) || payment.status !== "PENDING_REVIEW") return "لا يمكن اعتماد هذا الطلب في حالته الحالية."; const result = createEntitlement({ studentId: payment.studentId, teacherId: payment.teacherId, courseId: payment.courseId, packageId: payment.packageId, source: "ONLINE_PAYMENT", sourceReference: payment.reference }); if (result) return result; setPayments((items) => items.map((item) => item.id === paymentId ? { ...item, status: "APPROVED", timeline: [...item.timeline, { id: id("pay-event"), at: now(), action: "APPROVED", note: "اعتماد يدوي؛ لا توجد معاملة مالية فعلية." }] } : item)); audit("PAYMENT_APPROVED", payment.reference, payment.teacherId); return undefined; }
-  function rejectPayment(paymentId: string, reason: string) { const payment = payments.find((item) => item.id === paymentId); if (!payment || !allowed("payments.review") || !canSeePayment(payment) || !reason.trim() || !["PENDING_REVIEW", "REQUIRES_INFORMATION"].includes(payment.status)) return "لا يمكن رفض الطلب دون سبب أو في حالته الحالية."; setPayments((items) => items.map((item) => item.id === paymentId ? { ...item, status: "REJECTED", timeline: [...item.timeline, { id: id("pay-event"), at: now(), action: "REJECTED", note: reason.trim() }] } : item)); audit("PAYMENT_REJECTED", payment.reference, payment.teacherId); return undefined; }
-  function requestPaymentInfo(paymentId: string, note: string) { const payment = payments.find((item) => item.id === paymentId); if (!payment || !allowed("payments.review") || !canSeePayment(payment) || !note.trim() || payment.status !== "PENDING_REVIEW") return "لا يمكن طلب معلومات إضافية لهذه الحالة."; setPayments((items) => items.map((item) => item.id === paymentId ? { ...item, status: "REQUIRES_INFORMATION", timeline: [...item.timeline, { id: id("pay-event"), at: now(), action: "INFORMATION_REQUESTED", note: note.trim() }] } : item)); audit("PAYMENT_INFORMATION_REQUESTED", payment.reference, payment.teacherId); return undefined; }
-  function cancelPayment(paymentId: string) { const payment = payments.find((item) => item.id === paymentId); if (!payment || !allowed("payments.review") || !canSeePayment(payment) || !["AWAITING_TRANSFER", "PENDING_REVIEW", "REQUIRES_INFORMATION"].includes(payment.status)) return "لا يمكن إلغاء الطلب في حالته الحالية."; setPayments((items) => items.map((item) => item.id === paymentId ? { ...item, status: "CANCELLED", timeline: [...item.timeline, { id: id("pay-event"), at: now(), action: "CANCELLED" }] } : item)); audit("PAYMENT_CANCELLED", payment.reference, payment.teacherId); return undefined; }
-  function createCoupon(input: Omit<PaidCoupon, "id" | "code" | "teacherId" | "status">) { const teacherId = teacherFor(input.courseId); if (!allowed("coupons.create") || !teacherId || !canSeeTeacher(teacherId) || !studentInScope(input.studentId, teacherId) || !validTarget(input.courseId, input.packageId) || (input.expiresAt && isExpired(input.expiresAt))) return "تحقق من الطالب والباقة وتاريخ الانتهاء ضمن نطاقك."; const item = { ...input, id: id("coupon"), code: `CASH-${Math.random().toString(36).slice(2, 8).toUpperCase()}`, teacherId, status: "ACTIVE" as const }; setCoupons((items) => [item, ...items]); audit("PAID_COUPON_CREATED", item.id, teacherId); return undefined; }
-  function redeemCoupon(code: string, studentId: string) { const coupon = coupons.find((item) => item.code === code); if (!coupon || !allowed("coupons.manage") || !canSeeTeacher(coupon.teacherId) || coupon.studentId !== studentId || coupon.status !== "ACTIVE" || isExpired(coupon.expiresAt)) return "الكوبون غير صالح أو ليس لهذا الطالب."; const result = createEntitlement({ studentId, teacherId: coupon.teacherId, courseId: coupon.courseId, packageId: coupon.packageId, source: "PAID_COUPON", sourceReference: coupon.code }); if (result) return result; setCoupons((items) => items.map((item) => item.id === coupon.id ? { ...item, status: "REDEEMED", redeemedAt: now() } : item)); audit("PAID_COUPON_REDEEMED", coupon.id, coupon.teacherId); return undefined; }
-  function revokeCoupon(couponId: string) { const coupon = coupons.find((item) => item.id === couponId); if (!coupon || !allowed("coupons.manage") || !canSeeTeacher(coupon.teacherId) || coupon.status !== "ACTIVE") return "لا يمكن إلغاء هذا الكوبون."; setCoupons((items) => items.map((item) => item.id === couponId ? { ...item, status: "REVOKED" } : item)); audit("PAID_COUPON_REVOKED", couponId, coupon.teacherId); return undefined; }
-  function createAccessCode(input: Omit<FreeAccessCode, "id" | "code" | "teacherId" | "status">) { const teacherId = teacherFor(input.courseId); const scopeValid = input.type === "LESSON" ? Boolean(input.lessonId) : Boolean(input.packageId); if (!allowed("access_codes.create") || !teacherId || !canSeeTeacher(teacherId) || !scopeValid || !validTarget(input.courseId, input.packageId, input.lessonId) || (input.assignedStudentId && !studentInScope(input.assignedStudentId, teacherId)) || (!input.permanent && !input.durationDays && !input.expiresAt)) return "تحقق من نطاق الكود ومدته والطالب المعيّن."; const item = { ...input, id: id("access-code"), code: `FREE-${Math.random().toString(36).slice(2, 8).toUpperCase()}`, teacherId, status: "ACTIVE" as const }; setAccessCodes((items) => [item, ...items]); audit("ACCESS_CODE_CREATED", item.id, teacherId); return undefined; }
-  function redeemAccessCode(code: string, studentId: string) { const accessCode = accessCodes.find((item) => item.code === code); if (!accessCode || !allowed("access_codes.manage") || !canSeeTeacher(accessCode.teacherId) || accessCode.status !== "ACTIVE" || (accessCode.assignedStudentId && accessCode.assignedStudentId !== studentId) || isExpired(accessCode.expiresAt)) return "كود الوصول غير صالح أو ليس لهذا الطالب."; const expiresAt = accessCode.permanent ? undefined : accessCode.expiresAt ?? new Date(Date.now() + (accessCode.durationDays ?? 0) * 86_400_000).toISOString(); const result = createEntitlement({ studentId, teacherId: accessCode.teacherId, courseId: accessCode.courseId, packageId: accessCode.packageId, lessonId: accessCode.lessonId, source: "FREE_ACCESS_CODE", sourceReference: accessCode.code, expiresAt }); if (result) return result; setAccessCodes((items) => items.map((item) => item.id === accessCode.id ? { ...item, status: "REDEEMED", redeemedAt: now() } : item)); audit("ACCESS_CODE_REDEEMED", accessCode.id, accessCode.teacherId); return undefined; }
-  function revokeAccessCode(codeId: string) { const accessCode = accessCodes.find((item) => item.id === codeId); if (!accessCode || !allowed("access_codes.manage") || !canSeeTeacher(accessCode.teacherId) || accessCode.status !== "ACTIVE") return "لا يمكن إلغاء كود الوصول."; setAccessCodes((items) => items.map((item) => item.id === codeId ? { ...item, status: "REVOKED" } : item)); audit("ACCESS_CODE_REVOKED", codeId, accessCode.teacherId); return undefined; }
-  function grantAccess(input: Pick<OnlineEntitlement, "studentId" | "courseId" | "packageId" | "lessonId" | "expiresAt">) { const teacherId = teacherFor(input.courseId); if (!allowed("student_access.grant") || !teacherId || !studentInScope(input.studentId, teacherId) || !validTarget(input.courseId, input.packageId, input.lessonId)) return "الطالب أو نطاق المحتوى غير صالح."; const source = role === "SUPER_ADMIN" ? "ADMIN_GRANT" : role === "TEACHER_ADMIN" ? "TEACHER_MANUAL_GRANT" : "ASSISTANT_MANUAL_GRANT"; const result = createEntitlement({ ...input, teacherId, source, sourceReference: user.id }); if (!result) audit("ACCESS_GRANTED", `${input.studentId}:${input.courseId}`, teacherId); return result; }
-  function revokeAccess(entitlementId: string, reason: string) { const item = entitlements.find((candidate) => candidate.id === entitlementId); if (!item || !allowed("student_access.revoke") || !canSeeEntitlement(item) || !reason.trim() || item.status !== "ACTIVE") return "تعذر إلغاء الصلاحية؛ السبب مطلوب."; setEntitlements((items) => items.map((candidate) => candidate.id === entitlementId ? { ...candidate, status: "REVOKED", revokeReason: reason.trim() } : candidate)); audit("ACCESS_REVOKED", entitlementId, item.teacherId); return undefined; }
-  function extendAccess(entitlementId: string, days: number) { const item = entitlements.find((candidate) => candidate.id === entitlementId); if (!item || !allowed("student_access.grant") || !canSeeEntitlement(item) || item.status !== "ACTIVE" || days <= 0) return "تعذر تمديد الصلاحية بهذه البيانات."; const base = item.expiresAt ? new Date(item.expiresAt).getTime() : Date.now(); setEntitlements((items) => items.map((candidate) => candidate.id === entitlementId ? { ...candidate, expiresAt: new Date(base + days * 86_400_000).toISOString() } : candidate)); audit("ACCESS_EXTENDED", entitlementId, item.teacherId); return undefined; }
-  return <FinanceContext.Provider value={{ payments, destinations, coupons, accessCodes, entitlements, canSeePayment, canSeeEntitlement, createDestination, updateDestination, approvePayment, rejectPayment, requestPaymentInfo, cancelPayment, createCoupon, redeemCoupon, revokeCoupon, createAccessCode, redeemAccessCode, revokeAccessCode, grantAccess, revokeAccess, extendAccess }}>{children}</FinanceContext.Provider>;
+  const ops = useOperations();
+  const workspace = useDashboardWorkspace();
+  const [payments, setPayments] = useState<PaymentRequest[]>([]);
+  const [destinations, setDestinations] = useState<PaymentDestination[]>([]);
+  const [coupons, setCoupons] = useState<PaidCoupon[]>([]);
+  const [accessCodes, setAccessCodes] = useState<FreeAccessCode[]>([]);
+  const [entitlements, setEntitlements] = useState<OnlineEntitlement[]>([]);
+  const [financialSummary, setFinancialSummary] = useState<FinancialSummary>();
+  const issuedCodes = useRef(new Map<string, string>());
+
+  const load = useCallback(async () => {
+    const has = (permission: string) => workspace.permissions.includes(permission as never);
+    const [paymentRaw, destinationRaw, couponRaw, accessRaw, entitlementRaw, summaryRaw] = await Promise.all([
+      has("payments.view") ? apiRequest<any[]>("payment-requests") : [],
+      has("payments.view") ? apiRequest<any[]>("payment-destinations") : [],
+      has("coupons.manage") ? apiRequest<any[]>("coupons") : [],
+      has("access_codes.manage") ? apiRequest<any[]>("access-codes") : [],
+      has("student_access.manage") ? apiRequest<any[]>("entitlements") : [],
+      has("reports.financial") ? apiRequest<any>("financial-reports/summary") : undefined,
+    ]);
+
+    setPayments(paymentRaw.map((item) => ({
+      id: item.id,
+      reference: item.reference,
+      studentId: item.studentId,
+      teacherId: item.course?.teacherId ?? item.teacherId,
+      courseId: item.courseId,
+      packageId: item.packageId,
+      destinationId: item.destinationId,
+      amount: Number(item.amount),
+      method: item.paymentMethod ?? item.method,
+      submittedAt: item.submittedAt ?? item.createdAt,
+      status: item.status,
+      timeline: (item.events ?? []).map((event: any) => ({ id: event.id, at: event.createdAt, action: event.action, note: event.note ?? undefined })),
+    })));
+    setDestinations(destinationRaw.map((item) => ({
+      id: item.id,
+      provider: item.provider,
+      address: item.value,
+      accountHolderLabel: item.accountHolderLabel,
+      active: item.isActive,
+      teacherId: item.teacherId ?? undefined,
+    })));
+    setCoupons(couponRaw.map((item) => ({
+      id: item.id,
+      code: issuedCodes.current.get(item.id) ?? (item.codePrefix ? `${item.codePrefix}…` : "—"),
+      studentId: item.intendedStudentId,
+      courseId: item.courseId,
+      packageId: item.packageId,
+      teacherId: item.course?.teacherId,
+      expiresAt: item.expiresAt ?? undefined,
+      status: item.status,
+      redeemedAt: item.redeemedAt ?? undefined,
+    })));
+    setAccessCodes(accessRaw.map((item) => ({
+      id: item.id,
+      code: issuedCodes.current.get(item.id) ?? (item.codePrefix ? `${item.codePrefix}…` : "—"),
+      type: item.scopeType === "LESSON" ? "LESSON" : item.package?.type === "MONTHLY" ? "MONTHLY" : item.package?.type === "TERM" ? "TERM" : item.package?.type === "FINAL_REVISION" ? "REVISION" : "CUSTOM",
+      courseId: item.courseId,
+      packageId: item.packageId ?? undefined,
+      lessonId: item.lessonId ?? undefined,
+      teacherId: item.course?.teacherId,
+      assignedStudentId: item.intendedStudentId ?? undefined,
+      durationDays: item.durationDays ?? undefined,
+      expiresAt: item.fixedExpiresAt ?? undefined,
+      permanent: item.validityType === "PERMANENT",
+      privateStaffNote: item.internalNotes ?? undefined,
+      status: item.status,
+      redeemedAt: item.redeemedAt ?? undefined,
+    })));
+    setEntitlements(entitlementRaw.map((item) => ({
+      id: item.id,
+      studentId: item.studentId,
+      teacherId: item.course?.teacherId,
+      courseId: item.courseId,
+      packageId: item.packageId ?? undefined,
+      lessonId: item.lessonId ?? undefined,
+      source: item.sourceType,
+      status: item.accessStatus === "SCHEDULED" ? "PENDING" : item.accessStatus,
+      startsAt: item.startsAt,
+      expiresAt: item.expiresAt ?? undefined,
+      sourceReference: item.sourceId ?? item.id,
+      revokeReason: item.revocationReason ?? undefined,
+    })));
+    setFinancialSummary(summaryRaw ? {
+      from: summaryRaw.from,
+      to: summaryRaw.to,
+      totalRequests: summaryRaw.totalRequests,
+      approvedAmount: Number(summaryRaw.approvedAmount),
+      byStatus: summaryRaw.byStatus,
+    } : undefined);
+  }, [workspace.permissions]);
+
+  useEffect(() => {
+    void load().catch((error) => window.alert(toApiError(error).message));
+  }, [load]);
+
+  const refresh = () => { void load().catch((error) => window.alert(toApiError(error).message)); };
+  const mutate = (path: string, method: string, body?: unknown) => {
+    void apiRequest(path, { method, body }).then(refresh).catch((error) => window.alert(toApiError(error).message));
+  };
+  const canSeePayment = (item: PaymentRequest) => ops.canSeeTeacher(item.teacherId);
+  const canSeeEntitlement = (item: OnlineEntitlement) => ops.canSeeTeacher(item.teacherId);
+  const createDestination = (item: Omit<PaymentDestination, "id">) => {
+    mutate("payment-destinations", "POST", { teacherId: item.teacherId, provider: item.provider, value: item.address, accountHolderLabel: item.accountHolderLabel, isActive: item.active }); return undefined;
+  };
+  const updateDestination = (id: string, item: Partial<PaymentDestination>) => {
+    mutate(`payment-destinations/${id}`, "PATCH", { provider: item.provider, value: item.address, accountHolderLabel: item.accountHolderLabel, isActive: item.active }); return undefined;
+  };
+  const reviewPayment = async (path: string, body?: unknown) => {
+    try { await apiRequest(path, { method: "POST", body }); await load(); }
+    catch (error) { throw new Error(toApiError(error).message); }
+  };
+  const approvePayment = (id: string) => reviewPayment(`payment-requests/${id}/approve`);
+  const rejectPayment = (id: string, reason: string) => reviewPayment(`payment-requests/${id}/reject`, { reason });
+  const requestPaymentInfo = (id: string, reason: string) => reviewPayment(`payment-requests/${id}/request-information`, { reason });
+  const createCoupon = (item: Omit<PaidCoupon, "id" | "code" | "teacherId" | "status">) => { void apiRequest<{coupon:{id:string};code:string}>("coupons", { method:"POST", body:{ studentId: item.studentId, packageId: item.packageId, expiresAt: item.expiresAt } }).then(async(result)=>{issuedCodes.current.set(result.coupon.id,result.code);await load();}).catch((error)=>window.alert(toApiError(error).message)); return undefined; };
+  const redeemCoupon = () => "استرداد الكوبون متاح للطالب فقط؛ لا يوجد endpoint موظف للاسترداد نيابة عنه.";
+  const revokeCoupon = (id: string) => { mutate(`coupons/${id}/revoke`, "POST", { reason: "تم الإلغاء من لوحة الموظفين" }); return undefined; };
+  const createAccessCode = (item: Omit<FreeAccessCode, "id" | "code" | "teacherId" | "status">) => {
+    if (!item.courseId || (!item.lessonId && !item.packageId)) return "اختر كورسًا ودرسًا أو باقة للكود.";
+    void apiRequest<{accessCode:{id:string};code:string}>("access-codes", { method:"POST", body:{ courseId: item.courseId, intendedStudentId: item.assignedStudentId, scopeType: item.lessonId ? "LESSON" : "PACKAGE", packageId: item.packageId, lessonId: item.lessonId, validityType: item.permanent ? "PERMANENT" : item.expiresAt ? "FIXED_EXPIRY" : "DURATION_DAYS", durationDays: item.durationDays, fixedExpiresAt: item.expiresAt, internalNotes: item.privateStaffNote } }).then(async(result)=>{issuedCodes.current.set(result.accessCode.id,result.code);await load();}).catch((error)=>window.alert(toApiError(error).message)); return undefined;
+  };
+  const redeemAccessCode = () => "استرداد كود الوصول متاح للطالب فقط؛ لا يوجد endpoint موظف للاسترداد نيابة عنه.";
+  const revokeAccessCode = (id: string) => { mutate(`access-codes/${id}/revoke`, "POST", { reason: "تم الإلغاء من لوحة الموظفين" }); return undefined; };
+  const grantAccess = (item: Pick<OnlineEntitlement, "studentId" | "courseId" | "packageId" | "lessonId" | "expiresAt">) => { mutate("entitlements/grant", "POST", { ...item, scopeType: item.lessonId ? "LESSON" : item.packageId ? "PACKAGE" : "COURSE" }); return undefined; };
+  const revokeAccess = (id: string, reason: string) => { mutate(`entitlements/${id}/revoke`, "POST", { reason }); return undefined; };
+  const extendAccess = (id: string, days: number) => { const item = entitlements.find((entry) => entry.id === id); const base = item?.expiresAt ? new Date(item.expiresAt).getTime() : Date.now(); mutate(`entitlements/${id}/extend`, "POST", { expiresAt: new Date(base + days * 86_400_000).toISOString() }); return undefined; };
+
+  return <Context.Provider value={{ payments, destinations, coupons, accessCodes, entitlements, financialSummary, canSeePayment, canSeeEntitlement, createDestination, updateDestination, approvePayment, rejectPayment, requestPaymentInfo, createCoupon, redeemCoupon, revokeCoupon, createAccessCode, redeemAccessCode, revokeAccessCode, grantAccess, revokeAccess, extendAccess }}>{children}</Context.Provider>;
 }
-export function useFinance() { const context = useContext(FinanceContext); if (!context) throw new Error("useFinance must be used within FinanceProvider"); return context; }
+
+export function useFinance() {
+  const value = useContext(Context);
+  if (!value) throw new Error("useFinance must be used within FinanceProvider");
+  return value;
+}

@@ -1,23 +1,19 @@
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/layouts/dashboard-shell";
-import { MOCK_ASSIGNMENT_COOKIE, MOCK_ROLE_COOKIE, validateMockSession } from "@/mocks/mock-dashboard-session";
-import { dashboardSessionRepository, mockAssistantAssignments } from "@/mocks/repositories/mock-dashboard-session-repository";
+import { getServerAssistantAssignments, getServerSession } from "@/features/auth/auth-server";
+import { mapAssignment, mapPermissions, mapUser } from "@/features/auth/auth-types";
+import { ApiError } from "@/lib/api/errors";
 
 export default async function DashboardRouteLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const roleCookie = cookieStore.get(MOCK_ROLE_COOKIE)?.value;
-  const assignmentCookie = cookieStore.get(MOCK_ASSIGNMENT_COOKIE)?.value;
-  const hasMockSessionCookies = Boolean(roleCookie || assignmentCookie);
-  const session = hasMockSessionCookies
-    ? validateMockSession({ role: roleCookie, assignmentId: assignmentCookie }, mockAssistantAssignments)
-    : null;
-  if (hasMockSessionCookies && !session) redirect("/login");
-  const user = await dashboardSessionRepository.getCurrentUser(session?.role ?? "SUPER_ADMIN");
-
-  return <DashboardShell user={user} initialAssignmentId={session?.assignmentId}>{children}</DashboardShell>;
+  let session;
+  try { session = await getServerSession(); } catch (error) { if (error instanceof ApiError && error.status === 401) redirect("/login?reason=session"); throw error; }
+  if (session.role === "STUDENT") redirect("/access-denied");
+  const rawAssignments = session.role === "ASSISTANT" ? await getServerAssistantAssignments() : [];
+  const assignments = rawAssignments.map((item) => mapAssignment(item, session.user.id));
+  const permissions = mapPermissions(session.permissions, session.role);
+  return <DashboardShell user={mapUser(session)} initialAssignmentId={session.workspace.assignmentId ?? undefined} initialAssignments={assignments} initialPermissions={permissions}>{children}</DashboardShell>;
 }

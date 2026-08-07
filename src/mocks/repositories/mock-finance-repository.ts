@@ -1,7 +1,7 @@
 import type { FreeAccessCode, OnlineEntitlement, PaidCoupon, PaymentDestination, PaymentRequest } from "@/types/finance";
 
 export const initialPaymentDestinations: PaymentDestination[] = [
-  { id: "destination_wallet_ahmed", provider: "VODAFONE_CASH", address: "01000000000", accountHolderLabel: "حساب أ. أحمد عبد الرحمن", active: true, teacherId: "teacher_ahmed" },
+  { id: "destination_wallet_ahmed", provider: "MOBILE_WALLET", address: "01000000000", accountHolderLabel: "حساب أ. أحمد عبد الرحمن", active: true, teacherId: "teacher_ahmed" },
   { id: "destination_instapay_system", provider: "INSTAPAY", address: "qalagedu@instapay", accountHolderLabel: "حساب المنصة المؤقت", active: true },
 ];
 export const initialPayments: PaymentRequest[] = [

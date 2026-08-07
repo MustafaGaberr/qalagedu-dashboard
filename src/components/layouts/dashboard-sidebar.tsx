@@ -134,7 +134,7 @@ export function DashboardSidebar({
           <p className={cn("text-sm font-bold", collapsed && "sr-only")}>{user.fullName}</p>
           <div className={cn("mt-2 flex items-center justify-between gap-2", collapsed && "mt-0")}>
             <RoleBadge role={user.role} />
-            <span className={cn("text-xs text-muted-foreground", collapsed && "sr-only")}>Mock</span>
+            <span className={cn("text-xs text-muted-foreground", collapsed && "sr-only")}>متصل</span>
           </div>
         </div>
       </div>

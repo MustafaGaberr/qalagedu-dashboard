@@ -1,8 +1,9 @@
 import { DashboardOverviewPage } from "@/features/dashboard-overview/components/dashboard-overview-page";
-import { dashboardSessionRepository } from "@/mocks/repositories/mock-dashboard-session-repository";
+import { getServerSession } from "@/features/auth/auth-server";
+import { mapUser } from "@/features/auth/auth-types";
 
 export default async function DashboardPage() {
-  const user = await dashboardSessionRepository.getCurrentUser();
+  const user = mapUser(await getServerSession());
 
   return <DashboardOverviewPage user={user} />;
 }

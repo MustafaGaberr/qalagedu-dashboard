@@ -3,7 +3,7 @@ import type { DashboardRole } from "@/types/auth";
 import type { Permission } from "@/types/permissions";
 
 export function permissionsForRole(role: DashboardRole, assignmentPermissions?: readonly Permission[]) {
-  return role === "ASSISTANT" && assignmentPermissions ? assignmentPermissions : ROLE_PERMISSIONS[role];
+  return assignmentPermissions ?? ROLE_PERMISSIONS[role];
 }
 
 export function canAccess(role: DashboardRole, permission: Permission, assignmentPermissions?: readonly Permission[]) {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { ClipboardCheck } from "lucide-react";
 import { AccessDeniedState } from "@/components/shared/access-denied-state";
+import { PageLoadingSkeleton } from "@/components/shared/dashboard-page-patterns";
 import { PageHeader } from "@/components/shared/page-header";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,8 @@ import { ConfirmationDialog } from "@/features/operations/confirmation-dialog";
 import { useDashboardWorkspace } from "@/features/dashboard-workspace/workspace-context";
 import { useOperations } from "@/features/operations/operations-context";
 import { canAccess } from "@/lib/access-control";
+import { apiRequest } from "@/lib/api/client";
+import { toApiError } from "@/lib/api/errors";
 import type {
   AttendanceState,
   BarcodeStatus,
@@ -90,11 +93,15 @@ export function StudentsPage() {
 export function StudentDetailsPage({ studentId }: { studentId: string }) {
   const ops = useOperations();
   const student = ops.students.find((s) => s.id === studentId);
+  const [editing, setEditing] = useState(false);
+  const [profile, setProfile] = useState({ name: student?.name ?? "", educationalGrade: student?.grade ?? "", guardianName: student?.guardian.name ?? "", guardianPhone: student?.guardian.phone ?? "" });
+  const [saving, setSaving] = useState(false);
+  const [profileNotice, setProfileNotice] = useState("");
   const entries = ops.enrollments.filter(
     (e) =>
       e.studentId === studentId && ops.canSeeTeacher(e.teacherId, e.groupId),
   );
-  if (!useAllowed("students.view") || !student || !entries.length)
+  if (!useAllowed("students.view") || !student)
     return <AccessDeniedState />;
   return (
     <>
@@ -103,6 +110,7 @@ export function StudentDetailsPage({ studentId }: { studentId: string }) {
         description={`كود الطالب: ${student.code}`}
       />
       <main className="space-y-4 px-4 py-6 sm:px-6 lg:px-8">
+        {editing ? <Card><CardHeader><CardTitle>تعديل ملف الطالب</CardTitle></CardHeader><CardContent className="grid gap-3 md:grid-cols-2"><Input value={profile.name} onChange={(event)=>setProfile({...profile,name:event.target.value})} placeholder="اسم الطالب"/><Input value={profile.educationalGrade} onChange={(event)=>setProfile({...profile,educationalGrade:event.target.value})} placeholder="الصف"/><Input value={profile.guardianName} onChange={(event)=>setProfile({...profile,guardianName:event.target.value})} placeholder="اسم ولي الأمر"/><Input value={profile.guardianPhone} onChange={(event)=>setProfile({...profile,guardianPhone:event.target.value})} placeholder="هاتف ولي الأمر"/><div className="flex gap-2 md:col-span-2"><Button disabled={saving} onClick={()=>{setSaving(true);setProfileNotice("");void apiRequest(`students/${studentId}`,{method:"PATCH",body:profile}).then(()=>{setProfileNotice("تم حفظ الملف من الخادم.");setEditing(false);window.location.reload();}).catch((error)=>setProfileNotice(toApiError(error).message)).finally(()=>setSaving(false));}}>{saving?"جارٍ الحفظ…":"حفظ"}</Button><Button variant="outline" onClick={()=>setEditing(false)}>إلغاء</Button></div>{profileNotice?<p className="text-sm text-muted-foreground">{profileNotice}</p>:null}</CardContent></Card> : <Button variant="outline" onClick={()=>setEditing(true)}>تعديل ملف الطالب</Button>}
         <Card>
           <CardContent className="p-4 text-sm">
             ولي الأمر: {student.guardian.name} ·{" "}
@@ -788,8 +796,10 @@ export function AttendanceSessionPage({ sessionId }: { sessionId: string }) {
   const [confirm, setConfirm] = useState<
     "absent" | "close" | "reopen" | "clear"
   >();
+  const allowed = useAllowed("attendance.view");
+  if (!allowed) return <AccessDeniedState />;
+  if (ops.loading) return <PageLoadingSkeleton />;
   if (
-    !useAllowed("attendance.view") ||
     !session ||
     !ops.canSeeTeacher(session.teacherId, session.groupId)
   )
@@ -988,16 +998,18 @@ export function ScannerPage({ sessionId }: { sessionId: string }) {
   const [confirm, setConfirm] = useState<"undo" | "other" | "unexpected">();
   const pending = useRef("");
   const session = ops.sessions.find((s) => s.id === sessionId);
+  const allowed = useAllowed("attendance.scan");
+  if (!allowed) return <AccessDeniedState />;
+  if (ops.loading) return <PageLoadingSkeleton />;
   if (
-    !useAllowed("attendance.scan") ||
     !session ||
     !ops.canSeeTeacher(session.teacherId, session.groupId)
   )
     return <AccessDeniedState />;
-  const submit = (other = false, unexpected = false) => {
+  const submit = async (other = false, unexpected = false) => {
     if (!value.trim() || pending.current === value.trim()) return;
     pending.current = value.trim();
-    const out = ops.scanBarcode(sessionId, value.trim(), other, unexpected);
+    const out = await ops.scanBarcode(sessionId, value.trim(), other, unexpected);
     const labels: Record<string, string> = {
       SUCCESS: "تم تسجيل الحضور",
       DUPLICATE: "مسح مكرر؛ لم يُنشأ سجل جديد",

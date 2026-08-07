@@ -1,6 +1,6 @@
 export type PaymentStatus = "AWAITING_TRANSFER" | "PENDING_REVIEW" | "APPROVED" | "REJECTED" | "REQUIRES_INFORMATION" | "CANCELLED";
 export type PaymentMethod = "MOBILE_WALLET" | "INSTAPAY" | "CENTER_CASH";
-export type DestinationProvider = "VODAFONE_CASH" | "ORANGE_MONEY" | "ETISALAT_CASH" | "WE" | "INSTAPAY";
+export type DestinationProvider = "MOBILE_WALLET" | "INSTAPAY";
 export type CouponStatus = "ACTIVE" | "REDEEMED" | "EXPIRED" | "REVOKED";
 export type AccessCodeStatus = CouponStatus;
 export type AccessCodeType = "LESSON" | "MONTHLY" | "TERM" | "REVISION" | "CUSTOM";

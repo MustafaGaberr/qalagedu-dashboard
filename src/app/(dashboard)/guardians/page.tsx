@@ -1,6 +1,5 @@
-import { dashboardModulePages } from "@/features/access-control/module-pages";
-import { ProtectedPlaceholderPage } from "@/features/access-control/components/protected-placeholder-page";
+import { redirect } from "next/navigation";
 
 export default function GuardiansPage() {
-  return <ProtectedPlaceholderPage module={dashboardModulePages["guardian-messages"]} />;
+  redirect("/guardian-messages");
 }

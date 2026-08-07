@@ -30,12 +30,12 @@ export default function LoginPage() {
             <div>
               <h2 className="text-xl font-bold">بوابة خاصة بفريق السنتر</h2>
               <p className="mt-2 text-sm leading-7 text-muted-foreground">
-                هذه الواجهة مخصصة للمديرين، المدرسين، والمساعدين لمعاينة
-                أساسيات التشغيل قبل ربط الباك اند.
+                هذه الواجهة مخصصة للمديرين، المدرسين، والمساعدين لإدارة
+                العمليات المصرح بها ضمن نطاق كل حساب.
               </p>
             </div>
             <div className="grid gap-3">
-              {["صلاحيات مركزية حسب الدور", "تنقل عربي RTL", "بيانات Mock فقط"].map(
+              {["صلاحيات مركزية حسب الدور", "تنقل عربي RTL", "جلسة موظف آمنة"].map(
                 (item) => (
                   <div
                     key={item}
@@ -66,12 +66,12 @@ export default function LoginPage() {
           <div className="mb-6 space-y-2">
             <h2 className="text-2xl font-bold">تسجيل الدخول</h2>
             <p className="text-sm leading-6 text-muted-foreground">
-              ادخل ببيانات فريق السنتر للانتقال إلى لوحة الإدارة التجريبية.
+              ادخل ببيانات فريق السنتر للانتقال إلى لوحة الإدارة.
             </p>
           </div>
           <LoginForm />
           <p className="mt-5 text-center text-xs leading-5 text-muted-foreground">
-            منصة الطلاب مشروع منفصل؛ هذه الصفحة لا تنشئ جلسة حقيقية.
+            منصة الطلاب مشروع منفصل؛ تسجيل الدخول هنا مخصص لجلسات الموظفين.
           </p>
         </section>
       </div>

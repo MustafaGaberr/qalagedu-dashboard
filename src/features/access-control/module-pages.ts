@@ -15,7 +15,7 @@ export const dashboardModulePages = {
   lessons: module("lessons", "الوحدات والدروس", "واجهة تنظيم المحتوى التعليمي المستقبلية دون تعديلات فعلية.", ["lessons.view"]),
   packages: module("packages", "الباقات والأسعار", "أساس عرض الباقات قبل إعداد التسعير والمدفوعات.", ["packages.view"]),
   exams: module("exams", "الامتحانات", "أساس الامتحانات والدرجات قبل إنشاء أو نشر أي امتحان.", ["exams.view"]),
-  grades: module("grades", "الدرجات", "مساحة متابعة الدرجات قبل ربطها بسير إدخال ومراجعة.", ["grades.view"]),
+  grades: module("grades", "الدرجات", "متابعة درجات الاختبارات ضمن العقود المتاحة من الخادم.", ["grades.view"]),
   store: module("store", "الكتب والمتجر", "أساس إدارة المتجر التعليمي قبل إضافة مخزون أو طلبات.", ["store.view"]),
   payments: module("payments", "طلبات الدفع", "واجهة مراجعة تمهيدية دون معالجة مالية أو تكامل دفع.", ["payments.view"]),
   coupons: module("coupons", "الكوبونات", "أساس الكوبونات قبل إنشاء أو تفعيل أكواد حقيقية.", ["coupons.view"]),
