@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Bell, CheckCircle2, QrCode } from "lucide-react";
 
 import { PageHeader } from "@/components/shared/page-header";
@@ -11,11 +12,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export const metadata: Metadata = {
-  title: "معاينة واجهة التطوير",
-};
+export function generateMetadata(): Metadata {
+  return process.env.NODE_ENV === "production"
+    ? {}
+    : { title: "معاينة واجهة التطوير" };
+}
 
 export default function DevUiPage() {
+  if (process.env.NODE_ENV === "production") notFound();
+
   return (
     <main className="min-h-screen bg-background">
       <PageHeader

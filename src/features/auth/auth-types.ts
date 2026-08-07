@@ -1,3 +1,4 @@
+import { brandConfig } from "@/config/brand";
 import type { DashboardRole, DashboardUser, AssistantAssignment } from "@/types/auth";
 import type { Permission } from "@/types/permissions";
 
@@ -34,5 +35,5 @@ const backendPermissionByLocal: Partial<Record<Permission, string>> = Object.fro
   Object.entries(permissionMap).flatMap(([backend, local]) => local.map((permission) => [permission, backend])),
 );
 export const toBackendPermissions = (items: Permission[]) => [...new Set(items.map((item) => backendPermissionByLocal[item]).filter((item): item is string => Boolean(item)))];
-export const mapUser = (session: BackendSession): DashboardUser => { const names = session.user.name.trim().split(/\s+/); return { id: session.user.id, fullName: session.user.name, firstName: names[0] ?? session.user.name, email: session.user.loginIdentifier, phone: session.user.phone ?? undefined, role: session.role as DashboardRole, avatarInitials: names.slice(0, 2).map((name) => name[0]).join(" "), accountStatus: "active", centerName: "QalagEdu", teacherId: session.workspace.teacherId ?? undefined }; };
+export const mapUser = (session: BackendSession): DashboardUser => { const names = session.user.name.trim().split(/\s+/); return { id: session.user.id, fullName: session.user.name, firstName: names[0] ?? session.user.name, email: session.user.loginIdentifier, phone: session.user.phone ?? undefined, role: session.role as DashboardRole, avatarInitials: names.slice(0, 2).map((name) => name[0]).join(" "), accountStatus: "active", centerName: brandConfig.centerName, teacherId: session.workspace.teacherId ?? undefined }; };
 export const mapAssignment = (item: BackendAssignment, assistantId: string): AssistantAssignment => ({ id: item.id, assistantId, teacherId: item.teacher.id, teacherName: item.teacher.name, subject: item.label, grades: item.scope.gradeIds, groups: item.scope.groupIds, courses: item.scope.courseIds, permissions: mapPermissions(item.permissions), active: true });

@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/set-state-in-effect */
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { brandConfig } from "@/config/brand";
 import { apiRequest } from "@/lib/api/client";
 import { toApiError } from "@/lib/api/errors";
 import { useDashboardWorkspace } from "@/features/dashboard-workspace/workspace-context";
@@ -29,7 +30,7 @@ export function ContentProvider({children}:{children:React.ReactNode}) {
     const paper=paperRaw.map((x)=>({id:x.id,courseId:x.courseId,title:x.title,kind:"PAPER" as const,passingScore:undefined,resultRelease:"AFTER_REVIEW" as const,audience:"CENTER_STUDENTS" as const,targetIds:[],questions:[],state:state(x.status)}));
     setExams([...online,...paper]);
     setGrades(paperRaw.flatMap((exam)=>(exam.results??[]).map((result:any)=>({id:result.id,examId:exam.id,studentId:result.studentId,score:result.score==null?undefined:Number(result.score),manualReview:result.status!=="GRADED",note:result.notes??undefined}))));
-    setProducts(productRaw.map((x)=>({id:x.id,type:x.type,title:x.title,coverAlt:x.previewMetadata?.coverAlt??x.title,teacherOrPublisher:x.previewMetadata?.teacherOrPublisher??"QalagEdu",grade:x.previewMetadata?.grade??"",subject:x.previewMetadata?.subject??"",description:x.description??"",pageCount:x.previewMetadata?.pageCount??undefined,format:x.previewMetadata?.format??"",price:x.price==null?undefined:Number(x.price),relatedCourseId:x.courseId??undefined,relatedPackageId:x.packageId??undefined,state:state(x.status),safePreviewLabel:x.previewMetadata?.safePreviewLabel??undefined})));
+    setProducts(productRaw.map((x)=>({id:x.id,type:x.type,title:x.title,coverAlt:x.previewMetadata?.coverAlt??x.title,teacherOrPublisher:x.previewMetadata?.teacherOrPublisher??brandConfig.name,grade:x.previewMetadata?.grade??"",subject:x.previewMetadata?.subject??"",description:x.description??"",pageCount:x.previewMetadata?.pageCount??undefined,format:x.previewMetadata?.format??"",price:x.price==null?undefined:Number(x.price),relatedCourseId:x.courseId??undefined,relatedPackageId:x.packageId??undefined,state:state(x.status),safePreviewLabel:x.previewMetadata?.safePreviewLabel??undefined})));
     setWebsiteItems(websiteRaw.map((x)=>({id:x.id,type:x.type,title:x.title,body:x.body??undefined,order:x.position,active:x.isActive,desktopImageAlt:x.metadata?.desktopImageAlt??undefined,mobileImageAlt:x.metadata?.mobileImageAlt??undefined,ctaLabel:x.ctaLabel??undefined,ctaLink:x.ctaUrl??undefined,startsAt:x.startsAt??undefined,endsAt:x.endsAt??undefined,teacherId:x.metadata?.teacherId??undefined,courseId:x.metadata?.courseId??undefined,storeProductId:x.metadata?.storeProductId??undefined})));
     setAcademic(academicRaw);
   },[workspace.permissions,workspace.role]);
