@@ -10,16 +10,16 @@ export type StoreProductType = "BOOK" | "NOTES" | "SUMMARY" | "REVISION_FILE" | 
 export type WebsiteSectionType = "HERO" | "FEATURED_TEACHER" | "FEATURED_COURSE" | "REVISION" | "STORE_HIGHLIGHT" | "TESTIMONIAL" | "NEWS" | "CTA";
 
 export interface ContentCourse {
-  id: string; title: string; teacherId: string; subject: string; grade: string; term: string; studyMode: StudyMode; state: PublishState; description: string;
+  id: string; title: string; teacherId: string; subject: string; grade: string; term: string; studyMode: StudyMode; state: PublishState; description: string; coverImage?: string;
 }
 export interface CurriculumUnit { id: string; courseId: string; title: string; position: number; state: PublishState; }
 export interface LessonAttachment { id: string; name: string; safePreviewLabel: string; }
 export interface ContentLesson {
   id: string; courseId: string; unitId: string; title: string; description: string; durationMinutes: number; freePreview: boolean; state: PublishState;
-  position: number; attachments: LessonAttachment[]; provider?: VideoProvider; providerVideoId?: string; relatedExamId?: string;
+  position: number; attachments: LessonAttachment[]; provider?: VideoProvider; providerVideoId?: string; youtubeUrl?: string; thumbnailUrl?: string; relatedExamId?: string;
 }
 export interface ContentPackage {
-  id: string; courseId: string; title: string; type: PackageType; price: number; accessDays?: number; lessonIds: string[]; includeFutureLessons: boolean; examIds: string[]; fileLabels: string[]; state: PublishState;
+  id: string; courseId: string; title: string; type: PackageType; price: number; accessDays?: number; lessonIds: string[]; includeFutureLessons: boolean; examIds: string[]; fileLabels: string[]; state: PublishState; thumbnailUrl?: string;
 }
 export interface ExamQuestion { id: string; prompt: string; type: QuestionType; choices?: string[]; correctAnswers?: string[]; }
 export interface ContentExam {
@@ -28,8 +28,8 @@ export interface ContentExam {
 }
 export interface GradeEntry { id: string; examId: string; studentId: string; score?: number; manualReview: boolean; note?: string; }
 export interface StoreProduct {
-  id: string; type: StoreProductType; title: string; coverAlt: string; teacherOrPublisher: string; grade: string; subject: string; description: string; pageCount?: number; format: string; price?: number; relatedCourseId?: string; relatedPackageId?: string; state: PublishState; safePreviewLabel?: string;
+  id: string; type: StoreProductType; title: string; coverAlt: string; imageUrl?: string; teacherOrPublisher: string; grade: string; subject: string; description: string; pageCount?: number; format: string; price?: number; relatedCourseId?: string; relatedPackageId?: string; state: PublishState; safePreviewLabel?: string;
 }
 export interface WebsiteContentItem {
-  id: string; type: WebsiteSectionType; title: string; body?: string; order: number; active: boolean; desktopImageAlt?: string; mobileImageAlt?: string; ctaLabel?: string; ctaLink?: string; startsAt?: string; endsAt?: string; teacherId?: string; courseId?: string; storeProductId?: string;
+  id: string; type: WebsiteSectionType; title: string; subtitle?: string; body?: string; imageUrl?: string; order: number; active: boolean; imageAlt?: string; desktopImageAlt?: string; mobileImageAlt?: string; ctaLabel?: string; ctaLink?: string; startsAt?: string; endsAt?: string; teacherId?: string; courseId?: string; storeProductId?: string;
 }

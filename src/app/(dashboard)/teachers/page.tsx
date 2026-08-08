@@ -1,5 +1,5 @@
-import { TeachersPage } from "@/features/staff/staff-pages";
+import { TeachersMediaPage } from "@/features/staff/teachers-media-page";
 
 export default function TeachersRoutePage() {
-  return <TeachersPage />;
+  return <TeachersMediaPage />;
 }

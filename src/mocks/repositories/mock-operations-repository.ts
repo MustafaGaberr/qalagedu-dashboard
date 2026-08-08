@@ -1,7 +1,7 @@
 import type { AttendanceRecord, AttendanceScanEvent, CenterEnrollment, CenterEnrollmentRequest, CenterGroup, CenterSession, EnrollmentBarcode, GuardianMessageDraft, OperationalAuditEntry, StaffStudent } from "@/types/operations";
 
 export const operationalTerm = { id: "term_2026_1", label: "الفصل الدراسي الأول 2026/2027" } as const;
-export const operationalTeachers = [{ id: "teacher_ahmed", name: "أ. أحمد عبد الرحمن", subject: "الرياضيات" }, { id: "teacher_mona", name: "أ. منى السيد", subject: "الفيزياء" }] as const;
+export const operationalTeachers = [{ id: "teacher_ahmed", name: "مستر محمد الجمل", subject: "رياضيات ثانوي" }, { id: "teacher_mona", name: "مستر مصطفى مجدي", subject: "العلوم المتكاملة" }] as const;
 export const operationalCourses = [{ id: "course_math", name: "رياضيات الثانوية", teacherId: "teacher_ahmed" }, { id: "course_physics", name: "فيزياء الثانوية", teacherId: "teacher_mona" }] as const;
 export const initialStudents: StaffStudent[] = [
   { id: "student_omar", code: "ST-1042", name: "عمر خالد", grade: "الثالثة الثانوية", phone: "01010000001", guardian: { id: "guardian_omar", name: "خالد السيد", phone: "201010000001" }, active: true, onlineAccess: "NOT_LINKED" },

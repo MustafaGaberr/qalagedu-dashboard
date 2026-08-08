@@ -19,13 +19,12 @@ const permissionMap: Record<string, Permission[]> = {
   ACCESS_CODES_MANAGE: ["access_codes.view", "access_codes.manage", "access_codes.create"], STUDENT_ACCESS_MANAGE: ["student_access.view", "student_access.manage", "student_access.grant", "student_access.revoke"],
   CONTENT_READ: ["courses.view", "lessons.view"], CONTENT_MANAGE: ["courses.manage", "lessons.manage"], PACKAGES_READ: ["packages.view"], PACKAGES_MANAGE: ["packages.manage"],
   EXAMS_READ: ["exams.view"], EXAMS_MANAGE: ["exams.manage"], GRADES_READ: ["grades.view"], GRADES_MANAGE: ["grades.manage"], STORE_READ: ["store.view"], STORE_MANAGE: ["store.manage"], REPORTS_READ: ["reports.view"],
+  WEBSITE_CONTENT_READ: ["website.view"], WEBSITE_CONTENT_MANAGE: ["website.manage"],
 };
 export const mapPermissions = (items: string[], role?: DashboardRole | "STUDENT") => {
   const mapped = new Set<Permission>(["dashboard.view", ...items.flatMap((item) => permissionMap[item] ?? [])]);
   if (items.includes("PAYMENTS_READ") && items.includes("REPORTS_READ")) mapped.add("reports.financial");
   if (role === "SUPER_ADMIN") {
-    if (items.includes("CONTENT_READ")) mapped.add("website.view");
-    if (items.includes("CONTENT_MANAGE")) mapped.add("website.manage");
     ["teachers.view", "teachers.manage", "assistants.view", "assistants.manage", "assignments.view", "assignments.manage", "audit.view", "settings.center", "settings.system"].forEach((permission) => mapped.add(permission as Permission));
   }
   if (role === "TEACHER_ADMIN") ["teachers.view", "assistants.view", "assistants.manage", "assignments.view", "assignments.manage", "settings.center"].forEach((permission) => mapped.add(permission as Permission));

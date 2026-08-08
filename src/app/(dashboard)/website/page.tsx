@@ -1,2 +1,2 @@
-import { WebsitePage } from "@/features/content/store-website-pages";
-export default function WebsiteRoutePage() { return <WebsitePage />; }
+import { WebsiteAndBrandCmsPage } from "@/features/content/media-cms-pages";
+export default function WebsiteRoutePage() { return <WebsiteAndBrandCmsPage />; }
