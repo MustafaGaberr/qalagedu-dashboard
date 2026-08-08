@@ -1,0 +1,8 @@
+<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Qalagedu placeholder logo</title>
+  <desc id="desc">A simple geometric placeholder mark for the Qalagedu student platform.</desc>
+  <rect width="80" height="80" rx="18" fill="#106C64"/>
+  <path d="M21 27.5L40 17L59 27.5V52.5L40 63L21 52.5V27.5Z" fill="#F6F1DD"/>
+  <path d="M31 34.5H49V39.5H31V34.5Z" fill="#106C64"/>
+  <path d="M31 44H45V49H31V44Z" fill="#106C64"/>
+</svg>
