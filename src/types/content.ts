@@ -31,5 +31,5 @@ export interface StoreProduct {
   id: string; type: StoreProductType; title: string; coverAlt: string; imageUrl?: string; teacherOrPublisher: string; grade: string; subject: string; description: string; pageCount?: number; format: string; price?: number; relatedCourseId?: string; relatedPackageId?: string; state: PublishState; safePreviewLabel?: string;
 }
 export interface WebsiteContentItem {
-  id: string; type: WebsiteSectionType; title: string; subtitle?: string; body?: string; imageUrl?: string; order: number; active: boolean; imageAlt?: string; desktopImageAlt?: string; mobileImageAlt?: string; ctaLabel?: string; ctaLink?: string; startsAt?: string; endsAt?: string; teacherId?: string; courseId?: string; storeProductId?: string;
+  id: string; type: WebsiteSectionType; title: string; subtitle?: string; body?: string; imageUrl?: string; mobileImageUrl?: string; order: number; active: boolean; imageAlt?: string; desktopImageAlt?: string; mobileImageAlt?: string; ctaLabel?: string; ctaLink?: string; startsAt?: string; endsAt?: string; teacherId?: string; courseId?: string; storeProductId?: string;
 }
